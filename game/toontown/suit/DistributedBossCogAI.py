@@ -165,12 +165,10 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         return len(self.involvedToons) + len(self.looseToons) - self.__countRentalDisguiseToons()
 
     def __countRentalDisguiseToons(self):
-        count = 0
-        for toonId in self.involvedToons + self.looseToons:
-            if self.isToonWearingRentalSuit(toonId):
-                count += 1
-
-        return count
+        return sum(
+            bool(self.isToonWearingRentalSuit(toonId))
+            for toonId in self.involvedToons + self.looseToons
+        )
 
     def countDisguises(self):
         rentals = self.__countRentalDisguiseToons()
@@ -199,8 +197,19 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.sendUpdate('setBattleExperience', self.getBattleExperience())
 
     def getBattleExperience(self):
-        result = BattleExperienceAI.getBattleExperience(8, self.involvedToons, self.toonExp, self.toonSkillPtsGained, self.toonOrigQuests, self.toonItems, self.toonOrigMerits, self.toonMerits, self.toonParts, self.suitsKilled, self.helpfulToons)
-        return result
+        return BattleExperienceAI.getBattleExperience(
+            8,
+            self.involvedToons,
+            self.toonExp,
+            self.toonSkillPtsGained,
+            self.toonOrigQuests,
+            self.toonItems,
+            self.toonOrigMerits,
+            self.toonMerits,
+            self.toonParts,
+            self.suitsKilled,
+            self.helpfulToons,
+        )
 
     def b_setArenaSide(self, arenaSide):
         self.setArenaSide(arenaSide)
@@ -221,9 +230,8 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def setState(self, state):
         self.demand(state)
-        if self.air:
-            if state in self.keyStates:
-                self.air.writeServerEvent('bossBattle', self.doId, '%s|%s|%s|%s|%s|%s' % (self.dept, state, self.involvedToons, self.formatReward(), self.formatLaffLevels(), self.formatSuitType()))
+        if self.air and state in self.keyStates:
+            self.air.writeServerEvent('bossBattle', self.doId, '%s|%s|%s|%s|%s|%s' % (self.dept, state, self.involvedToons, self.formatReward(), self.formatLaffLevels(), self.formatSuitType()))
 
     def getState(self):
         return self.state
@@ -389,10 +397,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.sendToonIds()
 
     def divideToons(self):
-        if self.nerfed:
-            splitMethod = self.__balancedDivide
-        else:
-            splitMethod = self.__randomDivide
+        splitMethod = self.__balancedDivide if self.nerfed else self.__randomDivide
         self.toonsA, self.toonsB, loose = splitMethod()
         self.looseToons += loose
         self.sendToonIds()
@@ -440,10 +445,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         for avId in self.involvedToons:
             toon = self.air.doId2do.get(avId)
             if toon:
-                p = []
-                for t in ToontownBattleGlobals.Tracks:
-                    p.append(toon.experience.getExp(t))
-
+                p = [toon.experience.getExp(t) for t in ToontownBattleGlobals.Tracks]
                 self.toonExp[avId] = p
                 self.toonOrigMerits[avId] = toon.cogMerits[:]
 
@@ -529,7 +531,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.battleA = None
             self.battleAId = 0
             self.sendBattleIds()
-        if self.arenaSide == None:
+        if self.arenaSide is None:
             self.b_setArenaSide(0)
         if not self.battleB and self.hasToons() and self.hasToonsAlive():
             self.b_setState(self.postBattleState)
@@ -541,7 +543,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.battleB = None
             self.battleBId = 0
             self.sendBattleIds()
-        if self.arenaSide == None:
+        if self.arenaSide is None:
             self.b_setArenaSide(1)
         if not self.battleA and self.hasToons() and self.hasToonsAlive():
             self.b_setState(self.postBattleState)
@@ -565,10 +567,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         raise StandardError, 'generateSuits unimplemented'
 
     def handleRoundDone(self, battle, suits, activeSuits, toonIds, totalHp, deadSuits):
-        totalMaxHp = 0
-        for suit in suits:
-            totalMaxHp += suit.maxHP
-
+        totalMaxHp = sum(suit.maxHP for suit in suits)
         for suit in deadSuits:
             activeSuits.remove(suit)
 
@@ -588,8 +587,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def getBattleThreeTime(self):
         elapsed = globalClock.getFrameTime() - self.battleThreeStart
-        t1 = elapsed / float(self.battleThreeDuration)
-        return t1
+        return elapsed / float(self.battleThreeDuration)
 
     def progressValue(self, fromValue, toValue):
         t0 = float(self.bossDamage) / float(self.bossMaxDamage)
@@ -629,19 +627,23 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         if toon:
             self.d_showZapToon(avId, x, y, z, h, p, r, attackCode, timestamp)
             damage = ToontownGlobals.BossCogDamageLevels.get(attackCode)
-            if damage == None:
+            if damage is None:
                 self.notify.warning('No damage listed for attack code %s' % attackCode)
                 damage = 5
             damage *= self.getDamageMultiplier()
             damage = max(int(damage), 1)
             self.damageToon(toon, damage)
             currState = self.getCurrentOrNextState()
-            if attackCode == ToontownGlobals.BossCogElectricFence and (currState == 'RollToBattleTwo' or currState == 'BattleThree'):
-                if bpy < 0 and abs(bpx / bpy) > 0.5:
-                    if bpx < 0:
-                        self.b_setAttackCode(ToontownGlobals.BossCogSwatRight)
-                    else:
-                        self.b_setAttackCode(ToontownGlobals.BossCogSwatLeft)
+            if (
+                attackCode == ToontownGlobals.BossCogElectricFence
+                and currState in ['RollToBattleTwo', 'BattleThree']
+                and bpy < 0
+                and abs(bpx / bpy) > 0.5
+            ):
+                if bpx < 0:
+                    self.b_setAttackCode(ToontownGlobals.BossCogSwatRight)
+                else:
+                    self.b_setAttackCode(ToontownGlobals.BossCogSwatLeft)
         return
 
     def d_showZapToon(self, avId, x, y, z, h, p, r, attackCode, timestamp):
@@ -654,17 +656,19 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
     def setAttackCode(self, attackCode, avId=0):
         self.attackCode = attackCode
         self.attackAvId = avId
-        if attackCode == ToontownGlobals.BossCogDizzy or attackCode == ToontownGlobals.BossCogDizzyNow:
+        if attackCode in [
+            ToontownGlobals.BossCogDizzy,
+            ToontownGlobals.BossCogDizzyNow,
+        ]:
             delayTime = self.progressValue(20, 5)
             self.hitCount = 0
+        elif attackCode == ToontownGlobals.BossCogSlowDirectedAttack:
+            delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
+            delayTime += self.progressValue(10, 0)
         else:
-            if attackCode == ToontownGlobals.BossCogSlowDirectedAttack:
-                delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
-                delayTime += self.progressValue(10, 0)
-            else:
-                delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
-                if delayTime == None:
-                    return
+            delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
+            if delayTime is None:
+                return
         self.waitForNextAttack(delayTime)
         return
 

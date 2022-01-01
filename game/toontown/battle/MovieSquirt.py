@@ -1,3 +1,4 @@
+from sys import base_exec_prefix
 from direct.interval.IntervalGlobal import *
 from BattleBase import *
 from BattleProps import *
@@ -97,7 +98,7 @@ def __doSuitSquirts(squirts):
             for track in tracks:
                 toonTracks.append(track)
 
-        delay = delay + TOON_SQUIRT_DELAY
+        delay += TOON_SQUIRT_DELAY
 
     return toonTracks
 
@@ -118,12 +119,10 @@ def __doSquirt(squirt, delay, fShowStun, uberClone = 0):
          squirt['target']['hp']))
     if uberClone:
         ival = squirtfn_array[squirt['level']](squirt, delay, fShowStun, uberClone)
-        if ival:
-            squirtSequence.append(ival)
     else:
         ival = squirtfn_array[squirt['level']](squirt, delay, fShowStun)
-        if ival:
-            squirtSequence.append(ival)
+    if ival:
+        squirtSequence.append(ival)
     return [squirtSequence]
 
 
@@ -150,74 +149,74 @@ def __getSplashTrack(point, scale, delay, battle, splashHold = 0.01):
 
 
 def __getSuitTrack(suit, tContact, tDodge, hp, hpbonus, kbbonus, anim, died, leftSuits, rightSuits, battle, toon, fShowStun, beforeStun = 0.5, afterStun = 1.8, geyser = 0, uberRepeat = 0, revived = 0):
-    if hp > 0:
-        suitTrack = Sequence()
-        sival = ActorInterval(suit, anim)
-        sival = []
-        if kbbonus > 0 and not geyser:
-            suitPos, suitHpr = battle.getActorPosHpr(suit)
-            suitType = getSuitBodyType(suit.getStyleName())
-            animTrack = Sequence()
-            animTrack.append(ActorInterval(suit, anim, duration=0.2))
-            if suitType == 'a':
-                animTrack.append(ActorInterval(suit, 'slip-forward', startTime=2.43))
-            elif suitType == 'b':
-                animTrack.append(ActorInterval(suit, 'slip-forward', startTime=1.94))
-            elif suitType == 'c':
-                animTrack.append(ActorInterval(suit, 'slip-forward', startTime=2.58))
-            animTrack.append(Func(battle.unlureSuit, suit))
-            moveTrack = Sequence(Wait(0.2), LerpPosInterval(suit, 0.6, pos=suitPos, other=battle))
-            sival = Parallel(animTrack, moveTrack)
-        elif geyser:
-            suitStartPos = suit.getPos()
-            suitFloat = Point3(0, 0, 14)
-            suitEndPos = Point3(suitStartPos[0] + suitFloat[0], suitStartPos[1] + suitFloat[1], suitStartPos[2] + suitFloat[2])
-            suitType = getSuitBodyType(suit.getStyleName())
-            if suitType == 'a':
-                startFlailFrame = 16
-                endFlailFrame = 16
-            elif suitType == 'b':
-                startFlailFrame = 15
-                endFlailFrame = 15
-            else:
-                startFlailFrame = 15
-                endFlailFrame = 15
-            sival = Sequence(ActorInterval(suit, 'slip-backward', playRate=0.5, startFrame=0, endFrame=startFlailFrame - 1), Func(suit.pingpong, 'slip-backward', fromFrame=startFlailFrame, toFrame=endFlailFrame), Wait(0.5), ActorInterval(suit, 'slip-backward', playRate=1.0, startFrame=endFlailFrame))
-            sUp = LerpPosInterval(suit, 1.1, suitEndPos, startPos=suitStartPos, fluid=1)
-            sDown = LerpPosInterval(suit, 0.6, suitStartPos, startPos=suitEndPos, fluid=1)
-        elif fShowStun == 1:
-            sival = Parallel(ActorInterval(suit, anim), MovieUtil.createSuitStunInterval(suit, beforeStun, afterStun))
-        else:
-            sival = ActorInterval(suit, anim)
-        showDamage = Func(suit.showHpText, -hp, openEnded=0, attackTrack=SQUIRT_TRACK)
-        updateHealthBar = Func(suit.updateHealthBar, hp)
-        suitTrack.append(Wait(tContact))
-        suitTrack.append(showDamage)
-        suitTrack.append(updateHealthBar)
-        if not geyser:
-            suitTrack.append(sival)
-        elif not uberRepeat:
-            geyserMotion = Sequence(sUp, Wait(0.0), sDown)
-            suitLaunch = Parallel(sival, geyserMotion)
-            suitTrack.append(suitLaunch)
-        else:
-            suitTrack.append(Wait(5.5))
-        bonusTrack = Sequence(Wait(tContact))
-        if kbbonus > 0:
-            bonusTrack.append(Wait(0.75))
-            bonusTrack.append(Func(suit.showHpText, -kbbonus, 2, openEnded=0, attackTrack=SQUIRT_TRACK))
-        if hpbonus > 0:
-            bonusTrack.append(Wait(0.75))
-            bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0, attackTrack=SQUIRT_TRACK))
-        if died != 0:
-            suitTrack.append(MovieUtil.createSuitDeathTrack(suit, toon, battle))
-        else:
-            suitTrack.append(Func(suit.loop, 'neutral'))
-        if revived != 0:
-            suitTrack.append(MovieUtil.createSuitReviveTrack(suit, toon, battle))
-        return Parallel(suitTrack, bonusTrack)
-    else:
+    if hp <= 0:
         return MovieUtil.createSuitDodgeMultitrack(tDodge, suit, leftSuits, rightSuits)
+    suitTrack = Sequence()
+    sival = ActorInterval(suit, anim)
+    sival = []
+    if kbbonus > 0 and not geyser:
+        sival = __extracted_from___getSuitTrack_7(battle, suit, anim)
+    elif geyser:
+        suitStartPos = suit.getPos()
+        suitFloat = Point3(0, 0, 14)
+        suitEndPos = Point3(suitStartPos[0] + suitFloat[0], suitStartPos[1] + suitFloat[1], suitStartPos[2] + suitFloat[2])
+        suitType = getSuitBodyType(suit.getStyleName())
+        if suitType == 'a':
+            startFlailFrame = 16
+            endFlailFrame = 16
+        else:
+            startFlailFrame = 15
+            endFlailFrame = 15
+        sival = Sequence(ActorInterval(suit, 'slip-backward', playRate=0.5, startFrame=0, endFrame=startFlailFrame - 1), Func(suit.pingpong, 'slip-backward', fromFrame=startFlailFrame, toFrame=endFlailFrame), Wait(0.5), ActorInterval(suit, 'slip-backward', playRate=1.0, startFrame=endFlailFrame))
+        sUp = LerpPosInterval(suit, 1.1, suitEndPos, startPos=suitStartPos, fluid=1)
+        sDown = LerpPosInterval(suit, 0.6, suitStartPos, startPos=suitEndPos, fluid=1)
+    elif fShowStun == 1:
+        sival = Parallel(ActorInterval(suit, anim), MovieUtil.createSuitStunInterval(suit, beforeStun, afterStun))
+    else:
+        sival = ActorInterval(suit, anim)
+    showDamage = Func(suit.showHpText, -hp, openEnded=0, attackTrack=SQUIRT_TRACK)
+    updateHealthBar = Func(suit.updateHealthBar, hp)
+    suitTrack.append(Wait(tContact))
+    suitTrack.append(showDamage)
+    suitTrack.append(updateHealthBar)
+    if not geyser:
+        suitTrack.append(sival)
+    elif not uberRepeat:
+        geyserMotion = Sequence(sUp, Wait(0.0), sDown)
+        suitLaunch = Parallel(sival, geyserMotion)
+        suitTrack.append(suitLaunch)
+    else:
+        suitTrack.append(Wait(5.5))
+    bonusTrack = Sequence(Wait(tContact))
+    if kbbonus > 0:
+        bonusTrack.append(Wait(0.75))
+        bonusTrack.append(Func(suit.showHpText, -kbbonus, 2, openEnded=0, attackTrack=SQUIRT_TRACK))
+    if hpbonus > 0:
+        bonusTrack.append(Wait(0.75))
+        bonusTrack.append(Func(suit.showHpText, -hpbonus, 1, openEnded=0, attackTrack=SQUIRT_TRACK))
+    if died != 0:
+        suitTrack.append(MovieUtil.createSuitDeathTrack(suit, toon, battle))
+    else:
+        suitTrack.append(Func(suit.loop, 'neutral'))
+    if revived != 0:
+        suitTrack.append(MovieUtil.createSuitReviveTrack(suit, toon, battle))
+    return Parallel(suitTrack, bonusTrack)
+
+# TODO Rename this here and in `__getSuitTrack`
+def __extracted_from___getSuitTrack_7(battle, suit, anim):
+    suitPos, suitHpr = battle.getActorPosHpr(suit)
+    suitType = getSuitBodyType(suit.getStyleName())
+    animTrack = Sequence()
+    animTrack.append(ActorInterval(suit, anim, duration=0.2))
+    if suitType == 'a':
+        animTrack.append(ActorInterval(suit, 'slip-forward', startTime=2.43))
+    elif suitType == 'b':
+        animTrack.append(ActorInterval(suit, 'slip-forward', startTime=1.94))
+    elif suitType == 'c':
+        animTrack.append(ActorInterval(suit, 'slip-forward', startTime=2.58))
+    animTrack.append(Func(battle.unlureSuit, suit))
+    moveTrack = Sequence(Wait(0.2), LerpPosInterval(suit, 0.6, pos=suitPos, other=battle))
+    return Parallel(animTrack, moveTrack)
 
 
 def say(statement):
@@ -349,11 +348,11 @@ def __doWaterGlass(squirt, delay, fShowStun):
     def getSprayStartPos(toon = toon):
         toon.update(0)
         lod0 = toon.getLOD(toon.getLODNames()[0])
-        if base.config.GetBool('want-new-anims', 1):
-            if not lod0.find('**/def_head').isEmpty():
-                joint = lod0.find('**/def_head')
-            else:
-                joint = lod0.find('**/joint_head')
+        if (
+            base_exec_prefix.config.GetBool('want-new-anims', 1)
+            and not lod0.find('**/def_head').isEmpty()
+        ):
+            joint = lod0.find('**/def_head')
         else:
             joint = lod0.find('**/joint_head')
         n = hidden.attachNewNode('pointInFrontOfHead')
@@ -413,8 +412,7 @@ def __doWaterGun(squirt, delay, fShowStun):
     def getSprayStartPos(pistol = pistol, toon = toon):
         toon.update(0)
         joint = pistol.find('**/joint_nozzle')
-        p = joint.getPos(render)
-        return p
+        return joint.getPos(render)
 
     sprayTrack = MovieUtil.getSprayTrack(battle, WaterSprayColor, getSprayStartPos, targetPoint, dSprayScale, dSprayHold, dSprayScale, horizScale=scale, vertScale=scale)
     pistolPos = Point3(0.28, 0.1, 0.08)
@@ -710,24 +708,27 @@ def __doGeyser(squirt, delay, fShowStun, uberClone = 0):
             geyserHold = 0.5
 
         def getGeyserTrack(geyser, suit, geyserPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, geyserHold, useEffect, battle = battle):
-            geyserMound = MovieUtil.copyProp(geyser)
-            geyserRemoveM = geyserMound.findAllMatches('**/Splash*')
-            geyserRemoveM.addPathsFrom(geyserMound.findAllMatches('**/spout'))
-            for i in xrange(geyserRemoveM.getNumPaths()):
-                geyserRemoveM[i].removeNode()
+            geyserMound = _extracted_from_getGeyserTrack_2(
+                geyser, '**/Splash*', '**/spout'
+            )
 
-            geyserWater = MovieUtil.copyProp(geyser)
-            geyserRemoveW = geyserWater.findAllMatches('**/hole')
-            geyserRemoveW.addPathsFrom(geyserWater.findAllMatches('**/shadow'))
-            for i in xrange(geyserRemoveW.getNumPaths()):
-                geyserRemoveW[i].removeNode()
-
+            geyserWater = _extracted_from_getGeyserTrack_2(geyser, '**/hole', '**/shadow')
             track = Sequence(Wait(rainDelay), Func(MovieUtil.showProp, geyserMound, battle, suit.getPos(battle)), Func(MovieUtil.showProp, geyserWater, battle, suit.getPos(battle)), LerpScaleInterval(geyserWater, 1.0, scaleUpPoint, startScale=MovieUtil.PNT3_NEARZERO), Wait(geyserHold * 0.5), LerpScaleInterval(geyserWater, 0.5, MovieUtil.PNT3_NEARZERO, startScale=scaleUpPoint))
             track.append(LerpScaleInterval(geyserMound, 0.5, MovieUtil.PNT3_NEARZERO))
             track.append(Func(MovieUtil.removeProp, geyserMound))
             track.append(Func(MovieUtil.removeProp, geyserWater))
             track.append(Func(MovieUtil.removeProp, geyser))
             return track
+
+        # TODO Rename this here and in `getGeyserTrack`
+        def _extracted_from_getGeyserTrack_2(geyser, arg1, arg2):
+            result = MovieUtil.copyProp(geyser)
+            geyserRemoveM = result.findAllMatches(arg1)
+            geyserRemoveM.addPathsFrom(result.findAllMatches(arg2))
+            for i in xrange(geyserRemoveM.getNumPaths()):
+                geyserRemoveM[i].removeNode()
+
+            return result
 
         if not uberClone:
             tracks.append(Sequence(Wait(delayTime), getGeyserTrack(cloud, suit, geyserPosPoint, scaleUpPoint, rainEffects, rainDelay, effectDelay, geyserHold, useEffect=1)))

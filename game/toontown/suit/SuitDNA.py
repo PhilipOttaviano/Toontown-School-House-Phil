@@ -38,8 +38,7 @@ suitHeadTypes = ['f',
  'ms',
  'tf',
  'm',
- 'mh',
- 'qm']
+ 'mh']
 suitATypes = ['ym',
  'hh',
  'tbc',
@@ -62,8 +61,7 @@ suitBTypes = ['p',
  'bc',
  'ls',
  'tm',
- 'ms',
- 'qm']
+ 'ms']
 suitCTypes = ['f',
  'mm',
  'cr',
@@ -99,12 +97,6 @@ suitsPerLevel = [1,
  1]
 suitsPerDept = 8
 goonTypes = ['pg', 'sg']
-customSuitDepts = {
-    'qm': 'm'
-}
-customSuitLevels = {
-    'qm': 10
-}
 
 def getSuitBodyType(name):
     if name in suitATypes:
@@ -127,8 +119,6 @@ def getSuitDept(name):
         return suitDepts[2]
     elif index < suitsPerDept * 4:
         return suitDepts[3]
-    elif name in customSuitDepts.keys():
-        return customSuitDepts.get(name)
     else:
         print 'Unknown dept for suit name: ', name
         return None
@@ -152,22 +142,8 @@ def getSuitType(name):
     return index % suitsPerDept + 1
 
 
-validCogs = {
-    1   :   [1,2,3,4,5],
-    2   :   [2,3,4,5,6],
-    3   :   [3,4,5,6,7],
-    4   :   [4,5,6,7,8],
-    5   :   [5,6,7,8,9,10,11,12],
-    6   :   [6,7,8,9,10,11,12],
-    7   :   [7,8,9,10,11,12,13,14,15],
-    8   :   [8,9,10,11,12,13,14,15,16,17,18,19,20]
-}
-def getRandomSuitType(cogLevel, rng = random):
-    while True:
-        suitLevel = random.randint(1, 8)
-        for lv in validCogs.get(suitLevel):
-            if cogLevel == lv:
-                return suitLevel
+def getRandomSuitType(level, rng = random):
+    return random.randint(max(level - 4, 1), min(level, 8))
 
 
 def getRandomSuitByDept(dept):

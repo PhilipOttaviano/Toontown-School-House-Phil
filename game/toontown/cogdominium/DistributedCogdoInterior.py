@@ -222,10 +222,10 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         return
 
     def isBossFloor(self, floorNum):
-        if self.layout.hasBossBattle():
-            if self.layout.getBossBattleFloor() == floorNum:
-                return True
-        return False
+        return bool(
+            self.layout.hasBossBattle()
+            and self.layout.getBossBattleFloor() == floorNum
+        )
 
     def __cleanup(self):
         self.toons = []
@@ -299,11 +299,7 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         self.layout = CogdoLayout(numFloors)
 
     def getToonIds(self):
-        toonIds = []
-        for toon in self.toons:
-            toonIds.append(toon.doId)
-
-        return toonIds
+        return [toon.doId for toon in self.toons]
 
     def setToons(self, toonIds, hack):
         self.toonIds = toonIds
@@ -349,7 +345,7 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
             else:
                 self.notify.warning('setSuits() - no suit: %d' % suitId)
 
-        if len(self.joiningReserves) > 0:
+        if self.joiningReserves:
             self.fsm.request('ReservesJoining')
 
     def setState(self, state, timestamp):
@@ -518,11 +514,10 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         if not self.isBossFloor(self.currentFloor):
             self.elevatorModelOut.detachNode()
             messenger.send('sellbotFieldOfficeChanged', [True])
-        else:
-            if self.FOType == 's':
-                self._movie = CogdoElevatorMovie()
-                self._movie.load()
-                self._movie.play()
+        elif self.FOType == 's':
+            self._movie = CogdoElevatorMovie()
+            self._movie.load()
+            self._movie.play()
         self.__playElevator(ts, self.elevatorName, self.__handleElevatorDone)
         mult = ToontownBattleGlobals.getCreditMultiplier(self.currentFloor)
         base.localAvatar.inventory.setBattleCreditMultiplier(mult)
@@ -560,20 +555,25 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         self.sendUpdate('toonBarrelRoomIntroDone', [])
 
     def enterBarrelRoomIntro(self, ts = 0):
-        if not self.isBossFloor(self.currentFloor):
-            self.currentFloor += 1
-            if self._wantBarrelRoom:
-                self.__setupBarrelRoom()
-                self.barrelRoomIntroTrack, trackName = self.barrelRoom.getIntroInterval()
-                self.barrelRoomIntroDoneEvent = trackName
-                self.accept(self.barrelRoomIntroDoneEvent, self.barrelRoomIntroDone)
-                self.activeIntervals[trackName] = self.barrelRoomIntroTrack
-                self.barrelRoomIntroTrack.start(ts)
-                self._movie = CogdoBarrelRoomIntro()
-                self._movie.load()
-                self._movie.play()
-            else:
-                self._showExitElevator()
+        if self.isBossFloor(self.currentFloor):
+            return
+        self.currentFloor += 1
+        if self._wantBarrelRoom:
+            self._extracted_from_enterBarrelRoomIntro_5(ts)
+        else:
+            self._showExitElevator()
+
+    # TODO Rename this here and in `enterBarrelRoomIntro`
+    def _extracted_from_enterBarrelRoomIntro_5(self, ts):
+        self.__setupBarrelRoom()
+        self.barrelRoomIntroTrack, trackName = self.barrelRoom.getIntroInterval()
+        self.barrelRoomIntroDoneEvent = trackName
+        self.accept(self.barrelRoomIntroDoneEvent, self.barrelRoomIntroDone)
+        self.activeIntervals[trackName] = self.barrelRoomIntroTrack
+        self.barrelRoomIntroTrack.start(ts)
+        self._movie = CogdoBarrelRoomIntro()
+        self._movie.load()
+        self._movie.play()
 
     def exitBarrelRoomIntro(self):
         if self._wantBarrelRoom and not self.isBossFloor(self.currentFloor):
@@ -590,11 +590,10 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         self.barrelRoom.deactivate()
 
     def enterCollectBarrels(self, ts = 0):
-        if not self.isBossFloor(self.currentFloor):
-            if self._wantBarrelRoom:
-                self.acceptOnce('localToonLeft', self.__handleLocalToonLeftBarrelRoom)
-                self.barrelRoom.activate()
-                base.playMusic(self.waitMusic, looping=1, volume=0.7)
+        if not self.isBossFloor(self.currentFloor) and self._wantBarrelRoom:
+            self.acceptOnce('localToonLeft', self.__handleLocalToonLeftBarrelRoom)
+            self.barrelRoom.activate()
+            base.playMusic(self.waitMusic, looping=1, volume=0.7)
 
     def exitCollectBarrels(self):
         if self._wantBarrelRoom and not self.isBossFloor(self.currentFloor):
@@ -662,11 +661,9 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
         return None
 
     def __playReservesJoining(self, ts, name, callback):
-        index = 0
-        for suit in self.joiningReserves:
+        for index, suit in enumerate(self.joiningReserves):
             suit.reparentTo(render)
             suit.setPos(self.elevatorModelOut, Point3(ElevatorPoints[index][0], ElevatorPoints[index][1], ElevatorPoints[index][2]))
-            index += 1
             suit.setH(180)
             suit.loop('neutral')
 
@@ -757,9 +754,7 @@ class DistributedCogdoInterior(DistributedObject.DistributedObject):
 
     def displayBadges(self):
         numFloors = self.layout.getNumGameFloors()
-        if numFloors > 5 or numFloors < 3:
-            pass
-        else:
+        if numFloors <= 5 and numFloors >= 3:
             self.notify.warning('Invalid floor number for display badges.')
         for player in xrange(len(self.toons)):
             goldBadge = loader.loadModel('phase_5/models/cogdominium/tt_m_ara_crg_goldTrophy')

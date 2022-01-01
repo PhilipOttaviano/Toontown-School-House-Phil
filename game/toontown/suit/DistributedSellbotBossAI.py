@@ -130,7 +130,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
     def touchCage(self):
         avId = self.air.getAvatarIdFromSender()
         currState = self.getCurrentOrNextState()
-        if currState != 'BattleThree' and currState != 'NearVictory':
+        if currState not in ['BattleThree', 'NearVictory']:
             return
         if not self.validate(avId, avId in self.involvedToons, 'touchCage from unknown avatar'):
             return
@@ -152,18 +152,14 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             attackCode = random.choice([ToontownGlobals.BossCogAreaAttack, ToontownGlobals.BossCogFrontAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack, ToontownGlobals.BossCogDirectedAttack])
         if attackCode == ToontownGlobals.BossCogAreaAttack:
             self.__doAreaAttack()
+        elif attackCode == ToontownGlobals.BossCogDirectedAttack:
+            self.__doDirectedAttack()
         else:
-            if attackCode == ToontownGlobals.BossCogDirectedAttack:
-                self.__doDirectedAttack()
-            else:
-                self.b_setAttackCode(attackCode)
+            self.b_setAttackCode(attackCode)
 
     def __doAreaAttack(self):
         self.b_setAttackCode(ToontownGlobals.BossCogAreaAttack)
-        if self.recoverRate:
-            newRecoverRate = min(200, self.recoverRate * 1.2)
-        else:
-            newRecoverRate = 2
+        newRecoverRate = min(200, self.recoverRate * 1.2) if self.recoverRate else 2
         now = globalClock.getFrameTime()
         self.b_setBossDamage(self.getBossDamage(), newRecoverRate, now)
 
@@ -212,10 +208,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.waitForNextStrafe(delayTime)
 
     def __sendDooberIds(self):
-        dooberIds = []
-        for suit in self.doobers:
-            dooberIds.append(suit.doId)
-
+        dooberIds = [suit.doId for suit in self.doobers]
         self.sendUpdate('setDooberIds', [dooberIds])
 
     def d_cagedToonBattleThree(self, index, avId):
@@ -234,11 +227,10 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 return self.invokeSuitPlanner(15, 0)
             else:
                 return self.invokeSuitPlanner(16, 1)
+        elif battleNumber == 1:
+            return self.invokeSuitPlanner(9, 0)
         else:
-            if battleNumber == 1:
-                return self.invokeSuitPlanner(9, 0)
-            else:
-                return self.invokeSuitPlanner(10, 1)
+            return self.invokeSuitPlanner(10, 1)
 
     def removeToon(self, avId):
         toon = simbase.air.doId2do.get(avId)
@@ -381,10 +373,7 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             toon = self.air.doId2do.get(toonId)
             if toon:
                 configMax = simbase.config.GetInt('max-sos-cards', 16)
-                if configMax == 8:
-                    maxNumCalls = 1
-                else:
-                    maxNumCalls = 2
+                maxNumCalls = 1 if configMax == 8 else 2
                 if not toon.attemptAddNPCFriend(self.cagedToonNpcId, numCalls=maxNumCalls):
                     self.notify.info('%s.unable to add NPCFriend %s to %s.' % (self.doId, self.cagedToonNpcId, toonId))
                 if self.__shouldPromoteToon(toon):
@@ -396,9 +385,8 @@ class DistributedSellbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
     def __shouldPromoteToon(self, toon):
         if not toon.readyForPromotion(self.deptIndex):
             return False
-        else:
-            if self.isToonWearingRentalSuit(toon.doId):
-                return False
+        if self.isToonWearingRentalSuit(toon.doId):
+            return False
         return True
 
     def exitVictory(self):

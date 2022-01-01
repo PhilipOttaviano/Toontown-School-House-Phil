@@ -16,9 +16,7 @@ hitSoundFiles = ('AA_sound_Opera_Singer_Cog_Glass.ogg',)
 tSound = 2.45
 tSuitReact = 2.8
 DISTANCE_TO_WALK_BACK = MovieUtil.SUIT_LURE_DISTANCE * 0.75
-TIME_TO_WALK_BACK = 0.5
-if DISTANCE_TO_WALK_BACK == 0:
-    TIME_TO_WALK_BACK = 0
+TIME_TO_WALK_BACK = 0 if DISTANCE_TO_WALK_BACK == 0 else 0.5
 INSTRUMENT_SCALE_MODIFIER = 0.5
 BEFORE_STARS = 0.5
 AFTER_STARS = 1.75
@@ -105,7 +103,7 @@ def __getSuitTrack(sound, lastSoundThatHit, delay, hitCount, targets, totalDamag
             if hpbonus > 0:
                 bonusTrack = Sequence(Wait(delay + tSuitReact + delay + 0.75 + uberDelay), Func(suit.showHpText, -hpbonus, 1, openEnded=0))
             suitTrack.append(Func(suit.loop, 'neutral'))
-            if bonusTrack == None:
+            if bonusTrack is None:
                 tracks.append(suitTrack)
             else:
                 tracks.append(Parallel(suitTrack, bonusTrack))
@@ -167,9 +165,7 @@ def createSuitResetPosTrack(suit, battle):
 
 
 def __createToonInterval(sound, delay, toon, operaInstrument = None):
-    isNPC = 0
-    if sound.get('npc'):
-        isNPC = 1
+    isNPC = 1 if sound.get('npc') else 0
     battle = sound['battle']
     hasLuredSuits = __hasLuredSuits(sound)
     if not isNPC:
@@ -180,21 +176,25 @@ def __createToonInterval(sound, delay, toon, operaInstrument = None):
     if DISTANCE_TO_WALK_BACK and hasLuredSuits and not isNPC:
         retval.append(Parallel(ActorInterval(toon, 'walk', startTime=1, duration=TIME_TO_WALK_BACK, endTime=0.0001), LerpPosInterval(toon, TIME_TO_WALK_BACK, newPos, other=battle)))
     if operaInstrument:
-        sprayEffect = BattleParticles.createParticleEffect(file='soundWave')
-        sprayEffect.setDepthWrite(0)
-        sprayEffect.setDepthTest(0)
-        sprayEffect.setTwoSided(1)
-        I1 = 2.8
-        retval.append(ActorInterval(toon, 'sound', playRate=1.0, startTime=0.0, endTime=I1))
-        retval.append(Func(setPosFromOther, sprayEffect, operaInstrument, Point3(0, 1.6, -0.18)))
-        retval.append(__getPartTrack(sprayEffect, 0.0, 6.0, [sprayEffect, toon, 0], softStop=-3.5))
-        retval.append(ActorInterval(toon, 'sound', playRate=1.0, startTime=I1))
+        __extracted_from___createToonInterval_15(retval, toon, operaInstrument)
     else:
         retval.append(ActorInterval(toon, 'sound'))
     if DISTANCE_TO_WALK_BACK and hasLuredSuits and not isNPC:
         retval.append(Parallel(ActorInterval(toon, 'walk', startTime=0.0001, duration=TIME_TO_WALK_BACK, endTime=1), LerpPosInterval(toon, TIME_TO_WALK_BACK, oldPos, other=battle)))
     retval.append(Func(toon.loop, 'neutral'))
     return retval
+
+# TODO Rename this here and in `__createToonInterval`
+def __extracted_from___createToonInterval_15(retval, toon, operaInstrument):
+    sprayEffect = BattleParticles.createParticleEffect(file='soundWave')
+    sprayEffect.setDepthWrite(0)
+    sprayEffect.setDepthTest(0)
+    sprayEffect.setTwoSided(1)
+    I1 = 2.8
+    retval.append(ActorInterval(toon, 'sound', playRate=1.0, startTime=0.0, endTime=I1))
+    retval.append(Func(setPosFromOther, sprayEffect, operaInstrument, Point3(0, 1.6, -0.18)))
+    retval.append(__getPartTrack(sprayEffect, 0.0, 6.0, [sprayEffect, toon, 0], softStop=-3.5))
+    retval.append(ActorInterval(toon, 'sound', playRate=1.0, startTime=I1))
 
 
 def __hasLuredSuits(sound):
@@ -224,12 +224,14 @@ def __doBikehorn(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-1.1, -1.4, 0.1)
-        instrument.setHpr(145, 0, 0)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-1.1, -1.4, 0.1)
-        instrument2.setHpr(145, 0, 0)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-1.1, -1.4, 0.1)
+        arg0.setHpr(145, 0, 0)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -276,12 +278,14 @@ def __doWhistle(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-1.2, -1.3, 0.1)
-        instrument.setHpr(145, 0, 85)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-1.2, -1.3, 0.1)
-        instrument2.setHpr(145, 0, 85)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-1.2, -1.3, 0.1)
+        arg0.setHpr(145, 0, 85)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -326,12 +330,14 @@ def __doBugle(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-1.3, -1.4, 0.1)
-        instrument.setHpr(145, 0, 85)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-1.3, -1.4, 0.1)
-        instrument2.setHpr(145, 0, 85)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-1.3, -1.4, 0.1)
+        arg0.setHpr(145, 0, 85)
+        arg0.setScale(instrMin)
 
     def longshake(models, num):
         inShake = getScaleBlendIntervals(models, duration=0.2, startScale=instrMax, endScale=instrStretch, blendType='easeInOut')
@@ -387,12 +393,14 @@ def __doAoogah(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-1.0, -1.5, 0.2)
-        instrument.setHpr(145, 0, 85)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-1.0, -1.5, 0.2)
-        instrument2.setHpr(145, 0, 85)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-1.0, -1.5, 0.2)
+        arg0.setHpr(145, 0, 85)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -441,12 +449,14 @@ def __doElephant(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-.6, -.9, 0.15)
-        instrument.setHpr(145, 0, 85)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-.6, -.9, 0.15)
-        instrument2.setHpr(145, 0, 85)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-.6, -.9, 0.15)
+        arg0.setHpr(145, 0, 85)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -496,12 +506,14 @@ def __doFoghorn(sound, delay, toon, targets, level):
     instruments = [instrument, instrument2]
 
     def setInstrumentStats(instrument = instrument, instrument2 = instrument2):
-        instrument.setPos(-.8, -.9, 0.2)
-        instrument.setHpr(145, 0, 0)
-        instrument.setScale(instrMin)
-        instrument2.setPos(-.8, -.9, 0.2)
-        instrument2.setHpr(145, 0, 0)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_2(instrument)
+        _extracted_from_setInstrumentStats_2(instrument2)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_2(arg0):
+        arg0.setPos(-.8, -.9, 0.2)
+        arg0.setHpr(145, 0, 0)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -557,12 +569,14 @@ def __doOpera(sound, delay, toon, targets, level):
         notify.debug('setInstrumentStats')
         newPos = Vec3(-0.8, -0.9, 0.2)
         newPos *= 1.3
-        instrument.setPos(newPos[0], newPos[1], newPos[2])
-        instrument.setHpr(145, 0, 90)
-        instrument.setScale(instrMin)
-        instrument2.setPos(newPos[0], newPos[1], newPos[2])
-        instrument2.setHpr(145, 0, 90)
-        instrument2.setScale(instrMin)
+        _extracted_from_setInstrumentStats_5(instrument, newPos)
+        _extracted_from_setInstrumentStats_5(instrument2, newPos)
+
+    # TODO Rename this here and in `setInstrumentStats`
+    def _extracted_from_setInstrumentStats_5(arg0, newPos):
+        arg0.setPos(newPos[0], newPos[1], newPos[2])
+        arg0.setHpr(145, 0, 90)
+        arg0.setScale(instrMin)
 
     hands = toon.getRightHands()
     megaphoneShow = Sequence(Func(MovieUtil.showProps, megaphones, hands), Func(MovieUtil.showProps, instruments, hands), Func(setInstrumentStats))
@@ -624,8 +638,5 @@ soundfn_array = (__doBikehorn,
 def __getPartTrack(particleEffect, startDelay, durationDelay, partExtraArgs, softStop = 0):
     pEffect = partExtraArgs[0]
     parent = partExtraArgs[1]
-    if len(partExtraArgs) == 3:
-        worldRelative = partExtraArgs[2]
-    else:
-        worldRelative = 1
+    worldRelative = partExtraArgs[2] if len(partExtraArgs) == 3 else 1
     return Sequence(Wait(startDelay), ParticleInterval(pEffect, parent, worldRelative, duration=durationDelay, cleanup=True, softStopT=softStop))

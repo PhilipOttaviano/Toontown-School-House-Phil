@@ -144,8 +144,6 @@ class DistributedSellbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
             if toon == localAvatar:
                 self.skipedToonsList.append(toonId)
                 self.sendUpdate('skipVPCutscene', [toonId])
-            else:
-                pass
 
 
     def disable(self):
@@ -289,18 +287,7 @@ class DistributedSellbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
         localAvatar.setCameraFov(ToontownGlobals.CogHQCameraFov)
         dooberTrack = Parallel()
         if self.doobers:
-            self.__doobersToPromotionPosition(self.doobers[:4], self.battleANode)
-            self.__doobersToPromotionPosition(self.doobers[4:], self.battleBNode)
-            turnPosA = ToontownGlobals.SellbotBossDooberTurnPosA
-            turnPosB = ToontownGlobals.SellbotBossDooberTurnPosB
-            self.__walkDoober(self.doobers[0], 0, turnPosA, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[1], 4, turnPosA, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[2], 8, turnPosA, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[3], 12, turnPosA, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[7], 2, turnPosB, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[6], 6, turnPosB, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[5], 10, turnPosB, dooberTrack, delayDeletes)
-            self.__walkDoober(self.doobers[4], 14, turnPosB, dooberTrack, delayDeletes)
+            self._extracted_from_makeIntroductionMovie_8(dooberTrack, delayDeletes)
         toonTrack = Parallel()
         self.__toonsToPromotionPosition(self.toonsA, self.battleANode)
         self.__toonsToPromotionPosition(self.toonsB, self.battleBNode)
@@ -389,6 +376,21 @@ class DistributedSellbotBoss(DistributedBossCog.DistributedBossCog, FSM.FSM):
                              Func(self.setChatAbsolute, attackToons, CFSpeech))))))
         track.append(dialogTrack)
         return Sequence(Func(self.stickToonsToFloor), track, Func(self.unstickToons), name=self.uniqueName('Introduction'))
+
+    # TODO Rename this here and in `makeIntroductionMovie`
+    def _extracted_from_makeIntroductionMovie_8(self, dooberTrack, delayDeletes):
+        self.__doobersToPromotionPosition(self.doobers[:4], self.battleANode)
+        self.__doobersToPromotionPosition(self.doobers[4:], self.battleBNode)
+        turnPosA = ToontownGlobals.SellbotBossDooberTurnPosA
+        turnPosB = ToontownGlobals.SellbotBossDooberTurnPosB
+        self.__walkDoober(self.doobers[0], 0, turnPosA, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[1], 4, turnPosA, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[2], 8, turnPosA, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[3], 12, turnPosA, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[7], 2, turnPosB, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[6], 6, turnPosB, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[5], 10, turnPosB, dooberTrack, delayDeletes)
+        self.__walkDoober(self.doobers[4], 14, turnPosB, dooberTrack, delayDeletes)
 
     def __makeRollToBattleTwoMovie(self):
         startPos = Point3(ToontownGlobals.SellbotBossBattleOnePosHpr[0], ToontownGlobals.SellbotBossBattleOnePosHpr[1], ToontownGlobals.SellbotBossBattleOnePosHpr[2])

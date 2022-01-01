@@ -402,9 +402,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
             if toon:
                 if self.battleA and toon in self.battleA.toons:
                     pass
-                elif self.battleB and toon in self.battleB.toons:
-                    pass
-                else:
+                elif not self.battleB or toon not in self.battleB.toons:
                     toon.startLookAround()
                     toon.startSmooth()
                     toon.wrtReparentTo(render)
@@ -482,10 +480,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         p2 = self.e2.getSurfacePoint(self)
         p3 = self.e3.getSurfacePoint(self)
         p2a = (p1 + p3) / 2
-        if p2a[2] > p2[2]:
-            center = p2a
-        else:
-            center = p2
+        center = p2a if p2a[2] > p2[2] else p2
         self.setZ(self, center[2])
         if p1[2] > p2[2] + 0.01 or p3[2] > p2[2] + 0.01:
             mat = Mat4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -515,13 +510,8 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
     def rollBossToPoint(self, fromPos, fromHpr, toPos, toHpr, reverse):
         vector = Vec3(toPos - fromPos)
         distance = vector.length()
-        if toHpr == None:
-            mat = Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0)
-            headsUp(mat, vector, CSDefault)
-            scale = VBase3(0, 0, 0)
-            shear = VBase3(0, 0, 0)
-            toHpr = VBase3(0, 0, 0)
-            decomposeMatrix(mat, scale, shear, toHpr, CSDefault)
+        if toHpr is None:
+            toHpr = self._extracted_from_rollBossToPoint_5(vector)
         if fromHpr:
             newH = PythonUtil.fitDestAngle2Src(fromHpr[0], toHpr[0])
             toHpr = VBase3(newH, 0, 0)
@@ -540,6 +530,16 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         deltaPos = toPos - fromPos
         track = Sequence(Func(self.setPos, fromPos), Func(self.headsUp, toPos), Parallel(self.hprInterval(turnTime, toHpr, fromHpr), self.rollLeftTreads(turnTime, leftRate), self.rollRightTreads(turnTime, -leftRate)), Parallel(LerpFunctionInterval(self.rollBoss, duration=rollTime, extraArgs=[fromPos, deltaPos]), self.rollLeftTreads(rollTime, rollTreadRate), self.rollRightTreads(rollTime, rollTreadRate)))
         return (track, toHpr)
+
+    # TODO Rename this here and in `rollBossToPoint`
+    def _extracted_from_rollBossToPoint_5(self, vector):
+        mat = Mat3(0, 0, 0, 0, 0, 0, 0, 0, 0)
+        headsUp(mat, vector, CSDefault)
+        scale = VBase3(0, 0, 0)
+        shear = VBase3(0, 0, 0)
+        result = VBase3(0, 0, 0)
+        decomposeMatrix(mat, scale, shear, result, CSDefault)
+        return result
 
     def setupElevator(self, elevatorModel):
         self.elevatorModel = elevatorModel
@@ -663,10 +663,8 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
             return
         messenger.send('interrupt-pie')
         place = self.cr.playGame.getPlace()
-        currentState = None
-        if place:
-            currentState = place.fsm.getCurrentState().getName()
-        if currentState != 'walk' and currentState != 'finalBattle' and currentState != 'crane':
+        currentState = place.fsm.getCurrentState().getName() if place else None
+        if currentState not in ['walk', 'finalBattle', 'crane']:
             return
         toon = localAvatar
         fling = 1
@@ -675,7 +673,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
             fling = 0
             shake = 1
         if fling:
-            if origin == None:
+            if origin is None:
                 origin = self
             camera.wrtReparentTo(render)
             toon.headsUp(origin)
@@ -789,7 +787,10 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
         elif attackCode == ToontownGlobals.BossCogRecoverDizzyAttack:
             self.setDizzy(0)
             self.doAnimate('frontAttack', now=1)
-        elif attackCode == ToontownGlobals.BossCogDirectedAttack or attackCode == ToontownGlobals.BossCogSlowDirectedAttack:
+        elif attackCode in [
+            ToontownGlobals.BossCogDirectedAttack,
+            ToontownGlobals.BossCogSlowDirectedAttack,
+        ]:
             self.setDizzy(0)
             self.doDirectedAttack(avId, attackCode)
         elif attackCode == ToontownGlobals.BossCogNoAttack:
@@ -876,9 +877,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
             gearRoot.headsUp(toon)
             toToonH = PythonUtil.fitDestAngle2Src(0, gearRoot.getH() + 180)
             gearRoot.lookAt(toon)
-            neutral = 'Fb_neutral'
-            if not self.twoFaced:
-                neutral = 'Ff_neutral'
+            neutral = 'Ff_neutral' if not self.twoFaced else 'Fb_neutral'
             gearTrack = Parallel()
             for i in xrange(4):
                 node = gearRoot.attachNewNode(str(i))
@@ -1030,7 +1029,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
 
     def __clickedNameTag(self, avatar):
         self.notify.debug('__clickedNameTag')
-        if not (self.state == 'BattleThree' or self.state == 'BattleFour'):
+        if self.state not in ['BattleThree', 'BattleFour']:
             return
         if not self.allowClickedNameTag:
             return
@@ -1041,7 +1040,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
 
     def __handleFriendAvatar(self, avId, avName, avDisableName):
         self.notify.debug('__handleFriendAvatar')
-        if not (self.state == 'BattleThree' or self.state == 'BattleFour'):
+        if self.state not in ['BattleThree', 'BattleFour']:
             return
         if not self.allowClickedNameTag:
             return
@@ -1052,7 +1051,7 @@ class DistributedBossCog(DistributedAvatar.DistributedAvatar, BossCog.BossCog):
 
     def __handleAvatarDetails(self, avId, avName, playerId = None):
         self.notify.debug('__handleAvatarDetails')
-        if not (self.state == 'BattleThree' or self.state == 'BattleFour'):
+        if self.state not in ['BattleThree', 'BattleFour']:
             return
         if not self.allowClickedNameTag:
             return

@@ -294,11 +294,13 @@ class MaxToon(MagicWord):
         toon.b_setCogStatus(cogStatus * 4)
         toon.b_setCogRadar([1] * 4)
         toon.b_setBuildingRadar([1] * 4)
+        from toontown.taskforce import TaskForce
+        toon.b_setTaskForceQuests(TaskForce.TaskForceDict)
 
         for id in toon.getQuests():
             toon.removeQuest(id)
         toon.b_setQuestCarryLimit(ToontownGlobals.MaxQuestCarryLimit)
-        toon.b_setRewardHistory(Quests.LOOPING_FINAL_TIER, toon.getRewardHistory()[1])
+        toon.b_setRewardHistory(Quests.SELLBOT_TASK_FORCE, toon.getRewardHistory()[1])
 
         allFish = TTLocalizer.FishSpeciesNames
         fishLists = [[], [], []]

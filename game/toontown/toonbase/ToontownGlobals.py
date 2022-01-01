@@ -183,6 +183,7 @@ BossbotLobby = 10100
 BossbotCountryClubIntA = 10500
 BossbotCountryClubIntB = 10600
 BossbotCountryClubIntC = 10700
+BossbotCountryClubIntD = 10800
 SellbotHQ = 11000
 SellbotLobby = 11100
 SellbotFactoryExt = 11200
@@ -267,13 +268,16 @@ BossbotCountryClubSkelecogLevel = 12
 BossbotCountryClubBossLevel = 12
 CountryClubNumRooms = {BossbotCountryClubIntA: (4,),
  BossbotCountryClubIntB: 3 * (8,) + 6 * (9,) + 6 * (10,) + 5 * (11,),
- BossbotCountryClubIntC: 4 * (10,) + 10 * (11,) + 6 * (12,)}
+ BossbotCountryClubIntC: 4 * (10,) + 10 * (11,) + 6 * (12,),
+ BossbotCountryClubIntD: 4 * (10,) + 10 * (11,) + 6 * (12,)}
 CountryClubNumBattles = {BossbotCountryClubIntA: 3,
  BossbotCountryClubIntB: 2,
- BossbotCountryClubIntC: 3}
+ BossbotCountryClubIntC: 3,
+ BossbotCountryClubIntD: 3}
 CountryClubCogBuckRewards = {BossbotCountryClubIntA: 8,
  BossbotCountryClubIntB: 14,
- BossbotCountryClubIntC: 20}
+ BossbotCountryClubIntC: 20,
+ BossbotCountryClubIntD: 26}
 LawbotStageCogLevel = 10
 LawbotStageSkelecogLevel = 11
 LawbotStageBossLevel = 12

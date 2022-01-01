@@ -73,9 +73,9 @@ class BossbotHQDataAI(HoodDataAI.HoodDataAI):
 
     
     def createCogKarts(self):        
-        posList = ((154.762, 37.168999999999997, 0), (141.40299999999999, -81.887, 0), (-48.439999999999998, 15.308, 0))
-        hprList = ((110.815, 0, 0), (61.231000000000002, 0, 0), (-105.48099999999999, 0, 0))
-        mins = ToontownGlobals.FactoryLaffMinimums[3]
+        posList = ((154.762, 37.168999999999997, 0), (141.40299999999999, -81.887, 0), (-48.439999999999998, 15.308, 0), (-64.439999999999998, 15.308, 0))
+        hprList = ((110.815, 0, 0), (61.231000000000002, 0, 0), (-105.48099999999999, 0, 0), (-105.48099999999999, 0, 0))
+        mins = ToontownGlobals.FactoryLaffMinimums[2]
         kartIdList = []
         for cogCourse in xrange(len(posList)):
             pos=posList[cogCourse]

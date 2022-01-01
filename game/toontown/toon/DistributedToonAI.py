@@ -84,6 +84,7 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
         self.fishTank = None
         self.experience = None
         self.quests = []
+        self.taskForceQuests = []
         self.cogs = []
         self.cogCounts = []
         self.NPCFriendsDict = {}
@@ -1575,6 +1576,26 @@ class DistributedToonAI(DistributedPlayerAI.DistributedPlayerAI, DistributedSmoo
 
     def getFishingTrophies(self):
         return self.fishingTrophies
+
+    def setTaskForceQuests(self, taskForceQuests):
+        self.taskForceQuests = taskForceQuests
+    
+    def b_setTaskForceQuests(self, taskForceQuests):
+        self.setTaskForceQuests(taskForceQuests)
+        self.d_setTaskForceQuests(taskForceQuests)
+    
+    def d_setTaskForceQuests(self, taskForceQuests):
+        self.sendUpdate('setTaskForceQuests', [taskForceQuests])
+    
+    def getTaskForceQuests(self):
+        return self.taskForceQuests
+    
+    def getTaskForceQuest(self, taskForceId):
+        return self.taskForceQuests
+    
+    def addTaskForceQuest(self, taskForceId):
+        self.taskForceQuests.append(taskForceId)
+        self.b_setTaskForceQuests(self.taskForceQuests)
 
     def b_setQuests(self, questList):
         flattenedQuests = []

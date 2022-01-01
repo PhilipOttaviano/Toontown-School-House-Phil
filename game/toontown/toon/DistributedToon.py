@@ -152,6 +152,7 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
         self.tunnelCenterInfluence = 0.6
         self.pivotAngle = 90 + 45
         self.posIndex = 0
+        self.taskForceQuests = None
         self.houseId = 0
         self.money = 0
         self.bankMoney = 0
@@ -998,6 +999,12 @@ class DistributedToon(DistributedPlayer.DistributedPlayer, Toon.Toon, Distribute
 
     def getFishingTrophies(self):
         return self.fishingTrophies
+    
+    def setTaskForceQuests(self, taskForceQuests):
+        self.taskForceQuests = taskForceQuests
+    
+    def getTaskForceQuest(self, taskForceID):
+        return self.taskForceQuests[taskForceID]
 
     def setQuests(self, flattenedQuests):
         questList = []

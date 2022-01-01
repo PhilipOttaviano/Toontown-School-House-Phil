@@ -1116,6 +1116,7 @@ dclass DistributedToon : DistributedPlayer {
   setDisguisePageFlag(int8) ownrecv;
   setSosPageFlag(int8) ownrecv;
   setHouseId(uint32 = 0) required ownrecv db;
+  setTaskForceQuests(uint32[] = []) required broadcast ownrecv db;
   setQuests(uint32[] = []) required broadcast ownrecv db;
   setQuestHistory(uint16[] = []) required ownrecv db;
   setRewardHistory(uint8 = 0, uint16[] = []) required ownrecv db;

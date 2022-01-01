@@ -130,8 +130,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             if simbase.config.GetBool('bossbot-boss-cheat', 0):
                 listVersion[14] = weakenedValue
                 SuitBuildingGlobals.SuitBuildingInfo = tuple(listVersion)
-            retval = self.invokeSuitPlanner(14, 0)
-            return retval
+            return self.invokeSuitPlanner(14, 0)
         else:
             suits = self.generateDinerSuits()
             return suits
@@ -158,9 +157,8 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             while len(activeSuits) < 4:
                 activeSuits.append(reserveSuits.pop()[0])
 
-        retval = {'activeSuits': activeSuits,
+        return {'activeSuits': activeSuits,
          'reserveSuits': reserveSuits}
-        return retval
 
     def makeBattle(self, bossCogPosHpr, battlePosHpr, roundCallback, finishCallback, battleNumber, battleSide):
         if battleNumber == 1:
@@ -223,28 +221,26 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.toonsA:
             if battleNumber == 1:
                 self.battleA = self.makeBattle(bossCogPosHpr, ToontownGlobals.WaiterBattleAPosHpr, self.handleRoundADone, self.handleBattleADone, battleNumber, 0)
-                self.battleAId = self.battleA.doId
             else:
                 self.battleA = self.makeBattle(bossCogPosHpr, ToontownGlobals.DinerBattleAPosHpr, self.handleRoundADone, self.handleBattleADone, battleNumber, 0)
-                self.battleAId = self.battleA.doId
+            self.battleAId = self.battleA.doId
         else:
             self.moveSuits(self.activeSuitsA)
             self.suitsA = []
             self.activeSuitsA = []
-            if self.arenaSide == None:
+            if self.arenaSide is None:
                 self.b_setArenaSide(0)
         if self.toonsB:
             if battleNumber == 1:
                 self.battleB = self.makeBattle(bossCogPosHpr, ToontownGlobals.WaiterBattleBPosHpr, self.handleRoundBDone, self.handleBattleBDone, battleNumber, 1)
-                self.battleBId = self.battleB.doId
             else:
                 self.battleB = self.makeBattle(bossCogPosHpr, ToontownGlobals.DinerBattleBPosHpr, self.handleRoundBDone, self.handleBattleBDone, battleNumber, 1)
-                self.battleBId = self.battleB.doId
+            self.battleBId = self.battleB.doId
         else:
             self.moveSuits(self.activeSuitsB)
             self.suitsB = []
             self.activeSuitsB = []
-            if self.arenaSide == None:
+            if self.arenaSide is None:
                 self.b_setArenaSide(1)
         self.sendBattleIds()
         return
@@ -329,9 +325,10 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if self.state != 'BattleTwo':
             grantRequest = False
         elif (beltIndex, foodNum) not in self.toonFoodStatus.values():
-            if avId not in self.toonFoodStatus:
-                grantRequest = True
-            elif self.toonFoodStatus[avId] == None:
+            if (
+                avId not in self.toonFoodStatus
+                or self.toonFoodStatus[avId] is None
+            ):
                 grantRequest = True
         if grantRequest:
             self.toonFoodStatus[avId] = (beltIndex, foodNum)
@@ -349,9 +346,11 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         elif tableIndex < len(self.tables):
             table = self.tables[tableIndex]
             dinerStatus = table.getDinerStatus(chairIndex)
-            if dinerStatus in (table.HUNGRY, table.ANGRY):
-                if self.toonFoodStatus[avId]:
-                    grantRequest = True
+            if (
+                dinerStatus in (table.HUNGRY, table.ANGRY)
+                and self.toonFoodStatus[avId]
+            ):
+                grantRequest = True
         if grantRequest:
             self.toonFoodStatus[avId] = None
             table.foodServed(chairIndex)
@@ -370,22 +369,24 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.b_setState('BattleThree')
 
     def makeBattleThreeBattles(self):
-        if not self.battleThreeBattlesMade:
-            if not self.tables:
-                self.createBanquetTables()
-                for table in self.tables:
-                    table.turnOn()
-                    table.goInactive()
+        if self.battleThreeBattlesMade:
+            return
 
-            notDeadList = []
+        if not self.tables:
+            self.createBanquetTables()
             for table in self.tables:
-                tableInfo = table.getNotDeadInfo()
-                notDeadList += tableInfo
+                table.turnOn()
+                table.goInactive()
 
-            self.notDeadList = notDeadList
-            self.postBattleState = 'PrepareBattleFour'
-            self.initializeBattles(3, ToontownGlobals.BossbotBossBattleThreePosHpr)
-            self.battleThreeBattlesMade = True
+        notDeadList = []
+        for table in self.tables:
+            tableInfo = table.getNotDeadInfo()
+            notDeadList += tableInfo
+
+        self.notDeadList = notDeadList
+        self.postBattleState = 'PrepareBattleFour'
+        self.initializeBattles(3, ToontownGlobals.BossbotBossBattleThreePosHpr)
+        self.battleThreeBattlesMade = True
 
     def generateDinerSuits(self):
         diners = []
@@ -466,9 +467,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             belt.goInactive()
 
     def recordCeoInfo(self):
-        didTheyWin = 0
-        if self.bossDamage == self.bossMaxDamage:
-            didTheyWin = 1
+        didTheyWin = 1 if self.bossDamage == self.bossMaxDamage else 0
         self.battleFourTimeInMin = globalClock.getFrameTime() - self.battleFourTimeStarted
         self.battleFourTimeInMin /= 60.0
         self.numToonsAtEnd = 0
@@ -665,8 +664,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             self.threatDict[toonId] -= threat
         else:
             self.threatDict[toonId] = 0
-        if self.threatDict[toonId] < 0:
-            self.threatDict[toonId] = 0
+        self.threatDict[toonId] = max(self.threatDict[toonId], 0)
 
     def waitForNextAttack(self, delayTime):
         currState = self.getCurrentOrNextState()
@@ -734,10 +732,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 self.numGolfAttacks += 1
             elif self.isToonOnTable(toonId):
                 doesMoveAttack = simbase.air.config.GetBool('ceo-does-move-attack', 1)
-                if doesMoveAttack:
-                    chanceToShoot = 0.25
-                else:
-                    chanceToShoot = 1.0
+                chanceToShoot = 0.25 if doesMoveAttack else 1.0
                 if not self.moveAttackAllowed:
                     self.notify.debug('moveAttack is not allowed, doing gearDirectedAttack')
                     chanceToShoot = 1.0
@@ -768,15 +763,12 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         uprightTables = self.getUprightTables()
         for toonId in self.involvedToons:
             toonTable = self.getToonTableIndex(toonId)
-            if toonTable >= 0 and toonTable not in uprightTables:
-                pass
-            else:
+            if toonTable < 0 or toonTable in uprightTables:
                 result.append(toonId)
 
         return result
 
     def getMaxThreatToon(self):
-        returnedToonId = 0
         maxThreat = 0
         maxToons = []
         for toonId in self.threatDict:
@@ -790,9 +782,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             elif curThreat == maxThreat:
                 maxToons.append(toonId)
 
-        if maxToons:
-            returnedToonId = random.choice(maxToons)
-        return returnedToonId
+        return random.choice(maxToons) if maxToons else 0
 
     def getToonDifficulty(self):
         highestCogSuitLevel = 0
@@ -811,8 +801,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             totalNumToons = 1.0
         averageLevel = totalCogSuitLevels / totalNumToons
         self.notify.debug('toons average level = %f, highest level = %d' % (averageLevel, highestCogSuitLevel))
-        retval = min(averageLevel, self.maxToonLevels)
-        return retval
+        return min(averageLevel, self.maxToonLevels)
 
     def calcAndSetBattleDifficulty(self):
         self.toonLevels = self.getToonDifficulty()
@@ -833,12 +822,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.sendUpdate('setBattleDifficulty', [batDiff])
 
     def getUprightTables(self):
-        tableList = []
-        for table in self.tables:
-            if table.state != 'Flat':
-                tableList.append(table.index)
-
-        return tableList
+        return [table.index for table in self.tables if table.state != 'Flat']
 
     def getToonTableIndex(self, toonId):
         tableIndex = -1
@@ -859,16 +843,13 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         return golfSpotIndex
 
     def isToonOnTable(self, toonId):
-        result = self.getToonTableIndex(toonId) != -1
-        return result
+        return self.getToonTableIndex(toonId) != -1
 
     def isToonOnGolfSpot(self, toonId):
-        result = self.getToonGolfSpotIndex(toonId) != -1
-        return result
+        return self.getToonGolfSpotIndex(toonId) != -1
 
     def isToonRoaming(self, toonId):
-        result = not self.isToonOnTable(toonId) and not self.isToonOnGolfSpot(toonId)
-        return result
+        return not self.isToonOnTable(toonId) and not self.isToonOnGolfSpot(toonId)
 
     def reachedTable(self, tableIndex):
         if self.movingToTable and self.tableDest == tableIndex:
@@ -935,7 +916,7 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if grantRequest:
             self.toonupsGranted.insert(0, (beltIndex, toonupNum))
             if len(self.toonupsGranted) > 8:
-                self.toonupsGranted = self.toonupsGranted[0:8]
+                self.toonupsGranted = self.toonupsGranted[:8]
             self.sendUpdate('toonGotToonup', [avId,
              beltIndex,
              toonupIndex,
@@ -949,18 +930,19 @@ class DistributedBossbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
                 self.healToon(toon, 1)
 
     def toonLeftTable(self, tableIndex):
-        if self.movingToTable and self.tableDest == tableIndex:
-            if random.random() < 0.5:
-                self.movingToTable = False
-                self.waitForNextAttack(0)
+        if (
+            self.movingToTable
+            and self.tableDest == tableIndex
+            and random.random() < 0.5
+        ):
+            self.movingToTable = False
+            self.waitForNextAttack(0)
 
     def getBattleFourTime(self):
         if self.state != 'BattleFour':
-            t1 = 0
-        else:
-            elapsed = globalClock.getFrameTime() - self.battleFourStart
-            t1 = elapsed / float(self.battleFourDuration)
-        return t1
+            return 0
+        elapsed = globalClock.getFrameTime() - self.battleFourStart
+        return elapsed / float(self.battleFourDuration)
 
     def getDamageMultiplier(self):
         mult = 1.0

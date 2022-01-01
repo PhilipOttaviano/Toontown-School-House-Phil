@@ -12,6 +12,7 @@ from toontown.coghq import BossbotHQBossBattle
 from toontown.coghq import BossbotOfficeExterior
 from toontown.coghq import CountryClubInterior
 from pandac.PandaModules import DecalEffect, TextEncoder
+from panda3d.core import Fog
 import random
 aspectSF = 0.7227
 
@@ -31,6 +32,10 @@ class BossbotCogHQLoader(CogHQLoader.CogHQLoader):
         self.factoryExteriorModelPath = 'phase_11/models/lawbotHQ/LB_DA_Lobby'
         self.cogHQLobbyModelPath = 'phase_12/models/bossbotHQ/CogGolfLobby'
         self.geom = None
+        myFog = Fog("Fog Name")
+        myFog.setColor(0.35, 0.3, 0.3)
+        myFog.setExpDensity(0.003)
+        render.setFog(myFog)
         return
 
     def load(self, zoneId):

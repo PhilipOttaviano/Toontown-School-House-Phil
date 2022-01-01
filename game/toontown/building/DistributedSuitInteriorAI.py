@@ -84,7 +84,7 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
             self.timer.stop()
             if self.fsm.getCurrentState().getName() == 'Resting':
                 pass
-            elif self.battle == None:
+            elif self.battle is None:
                 self.bldg.deleteSuitInterior()
         return
 
@@ -144,7 +144,7 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
     def getToons(self):
         sendIds = []
         for toonId in self.toonIds:
-            if toonId == None:
+            if toonId is None:
                 sendIds.append(0)
             else:
                 sendIds.append(toonId)
@@ -155,10 +155,7 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
         self.sendUpdate('setSuits', self.getSuits())
 
     def getSuits(self):
-        suitIds = []
-        for suit in self.activeSuits:
-            suitIds.append(suit.doId)
-
+        suitIds = [suit.doId for suit in self.activeSuits]
         reserveIds = []
         values = []
         for info in self.reserveSuits:
@@ -264,8 +261,8 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
     def __createFloorBattle(self):
         if self.currentFloor == self.topFloor:
             bossBattle = 1
-        else:
-            bossBattle = 0
+    def __createFloorBattle(self):
+        bossBattle = 1 if self.currentFloor == self.topFloor else 0
         self.battle = DistributedBattleBldgAI.DistributedBattleBldgAI(self.air, self.zoneId, self.__handleRoundDone, self.__handleBattleDone, bossBattle=bossBattle)
         self.battle.suitsKilled = self.suitsKilled
         self.battle.suitsKilledPerFloor = self.suitsKilledPerFloor
@@ -283,9 +280,6 @@ class DistributedSuitInteriorAI(DistributedObjectAI.DistributedObjectAI):
         if self.air.suitInvasionManager.getInvading():
             mult *= getInvasionMultiplier()
         self.battle.battleCalc.setSkillCreditMultiplier(mult)
-
-    def __cleanupFloorBattle(self):
-        for suit in self.suits:
             self.notify.debug('cleaning up floor suit: %d' % suit.doId)
             if suit.isDeleted():
                 self.notify.debug('whoops, suit %d is deleted.' % suit.doId)

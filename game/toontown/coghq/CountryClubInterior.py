@@ -72,7 +72,14 @@ class CountryClubInterior(BattlePlace.BattlePlace):
     def load(self):
         self.parentFSM.getStateNamed('countryClubInterior').addChild(self.fsm)
         BattlePlace.BattlePlace.load(self)
-        musicName = random.choice(['phase_12/audio/bgm/Bossbot_Factory_v1.ogg', 'phase_12/audio/bgm/Bossbot_Factory_v2.ogg', 'phase_12/audio/bgm/Bossbot_Factory_v3.ogg'])
+        if self.zoneId == 10500:    
+            musicName = 'phase_12/audio/bgm/tangled_two.ogg'
+        elif self.zoneId == 10600:
+            musicName = 'phase_12/audio/bgm/inner_four.ogg'
+        elif self.zoneId == 10700:
+            musicName = 'phase_12/audio/bgm/middle_six.ogg'
+        elif self.zoneId == 10800:
+            musicName = 'phase_12/audio/bgm/entire_eight.ogg'
         self.music = base.loader.loadMusic(musicName)
 
     def unload(self):

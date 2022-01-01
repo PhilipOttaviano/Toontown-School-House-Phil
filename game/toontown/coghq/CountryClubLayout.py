@@ -24,7 +24,7 @@ def printAllBossbotInfo():
 
 def iterateBossbotCountryClubs(func):
     from toontown.toonbase import ToontownGlobals
-    for countryClubId in [ToontownGlobals.BossbotCountryClubIntA, ToontownGlobals.BossbotCountryClubIntB, ToontownGlobals.BossbotCountryClubIntC]:
+    for countryClubId in [ToontownGlobals.BossbotCountryClubIntA, ToontownGlobals.BossbotCountryClubIntB, ToontownGlobals.BossbotCountryClubIntC, ToontownGlobals.BossbotCountryClubIntD]:
         for floorNum in xrange(ToontownGlobals.CountryClubNumFloors[countryClubId]):
             func(CountryClubLayout(countryClubId, floorNum))
 
@@ -117,6 +117,30 @@ ClubLayout9_2 = [(0, 32, 5, 39, 17),
  (0, 32, 6, 39, 17),
  (0, 32, 6, 39, 17),
  (0, 32, 7, 39, 18)]
+ClubLayout8_0 = [(0, 32, 4, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 6, 39, 18)]
+ClubLayout8_1 = [(0, 32, 4, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 7, 39, 17),
+ (0, 32, 7, 39, 18)]
+ClubLayout8_2 = [(0, 32, 5, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 5, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 6, 39, 17),
+ (0, 32, 7, 39, 18)]
 countryClubLayouts = [ClubLayout3_0,
  ClubLayout3_1,
  ClubLayout3_2,
@@ -125,13 +149,19 @@ countryClubLayouts = [ClubLayout3_0,
  ClubLayout6_2,
  ClubLayout9_0,
  ClubLayout9_1,
- ClubLayout9_2]
+ ClubLayout9_2,
+ ClubLayout8_0,
+ ClubLayout8_1,
+ ClubLayout8_2]
 testLayout = [ClubLayout3_0,
  ClubLayout3_0,
  ClubLayout3_0,
  ClubLayout6_0,
  ClubLayout6_0,
  ClubLayout6_0,
+ ClubLayout9_0,
+ ClubLayout9_0,
+ ClubLayout9_0,
  ClubLayout9_0,
  ClubLayout9_0,
  ClubLayout9_0]

@@ -393,10 +393,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             else:
                 suitLevel = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL][-1] + 1
         suitLevel, suitType, suitTrack = self.pickLevelTypeAndTrack(suitLevel, suitType, suitTrack)
-        if suitName in SuitDNA.customSuitDepts.keys():
-            newSuit.setupCustomDNA(suitLevel, suitName, suitTrack)
-        else:
-            newSuit.setupSuitDNA(suitLevel, suitType, suitTrack)
+        newSuit.setupSuitDNA(suitLevel, suitType, suitTrack)
         newSuit.buildingHeight = buildingHeight
         gotDestination = self.chooseDestination(newSuit, startTime, toonBlockTakeover=toonBlockTakeover, cogdoTakeover=cogdoTakeover, minPathLen=minPathLen, maxPathLen=maxPathLen)
         if not gotDestination:
@@ -1060,7 +1057,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
     def __suitCanJoinBattle(self, zoneId):
         battle = self.battleMgr.getBattle(zoneId)
-        if len(battle.suits) >= 8:
+        if len(battle.suits) >= 4:
             return 0
         if battle:
             if simbase.config.GetBool('suits-always-join', 0):
